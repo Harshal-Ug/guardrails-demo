@@ -18,11 +18,11 @@ st.set_page_config(
 # --------------------------------------------------
 
 st.title("GuardRail")
-st.caption("PII Protection Middleware for Agentic AI")
+st.caption("PII Guardrail Middleware for Agentic AI")
 
 st.info(
-    "Customer Support Agent protected by a "
-    "LangChain GuardRail Middleware."
+    "Customer Support Agent protected by "
+    "LangChain PII Guardrail Middleware."
 )
 
 st.divider()
