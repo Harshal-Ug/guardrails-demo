@@ -1,0 +1,6 @@
+streamlit==1.48.0
+langchain==1.2.14
+langchain-groq==1.1.0
+transformers==4.55.4
+torch==2.8.0
+python-dotenv==1.1.1
