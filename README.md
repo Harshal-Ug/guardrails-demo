@@ -1,5 +1,11 @@
 # PII Guardrail Middleware for Agentic AI
 
+## Demo
+
+Here is a demonstration of the PII Guardrail Middleware in action.
+
+https://github.com/user-attachments/assets/5e226b2e-cbbb-4c65-9d09-1af63d6d8f0c
+
 A PII protection middleware built with LangChain for protecting sensitive information in agentic AI applications.
 
 This project demonstrates how sensitive user information can be detected and masked before reaching an LLM, while allowing the original information to be restored when required.
