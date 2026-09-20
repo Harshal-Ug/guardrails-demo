@@ -1,5 +1,6 @@
 import re
 from gliner import GLiNER
+import time
 
 
 class PIIAnonymizer:
@@ -34,12 +35,25 @@ class PIIAnonymizer:
         # --------------------------------------------------
         # 1. GLiNER NER detection
         # --------------------------------------------------
+        gliner_start = time.perf_counter()
 
         predictions = self.model.predict_entities(
             text,
             self.labels,
             threshold=0.5,
         )
+
+        gliner_latency = (time.perf_counter() - gliner_start) * 1000
+
+        print(f"GLiNER latency: {gliner_latency:.2f} ms")
+        print(f"GLiNER predictions: {predictions}")
+
+
+        # predictions = self.model.predict_entities(
+        #     text,
+        #     self.labels,
+        #     threshold=0.5,
+        # )
 
         # --------------------------------------------------
         # 2. Add structured PII detected by regex

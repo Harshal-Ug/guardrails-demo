@@ -81,7 +81,7 @@ agent = create_agent(
 
         "Sensitive information such as names, emails, "
         "and phone numbers may appear as placeholders "
-        "such as [NAME_0], [EMAIL_0], or [PHONE_0].\n\n"
+        "such as [PERSON_0], [EMAIL_0], or [PHONE_0].\n\n"
 
         "Never ask the customer to reveal sensitive "
         "information again if it has already been provided.\n\n"

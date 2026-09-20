@@ -1,3 +1,4 @@
+import re
 import time
 from typing import Any, Callable
 from typing_extensions import NotRequired
@@ -11,6 +12,11 @@ from langchain.messages import HumanMessage, AIMessage
 from langgraph.runtime import Runtime
 
 from anonymizer import PIIAnonymizer
+
+
+PLACEHOLDER_PATTERN = re.compile(
+    r"\[(?:PERSON|LOCATION|EMAIL|PHONE)_\d+\]"
+)
 
 
 class GuardRailState(AgentState):
@@ -74,6 +80,24 @@ class GuardRailMiddleware(AgentMiddleware[GuardRailState]):
                 masked_messages.append(message)
                 continue
 
+            # --------------------------------------------------
+            # IMPORTANT:
+            # If this message has already been sanitized,
+            # do not run PII detection on it again.
+            # --------------------------------------------------
+
+            if PLACEHOLDER_PATTERN.search(content):
+
+                masked_messages.append(message)
+
+                sanitized_prompt = content
+
+                continue
+
+            # --------------------------------------------------
+            # First-time PII masking
+            # --------------------------------------------------
+
             masked_content, new_mapping = (
                 self.anonymizer.mask(content)
             )
@@ -82,7 +106,10 @@ class GuardRailMiddleware(AgentMiddleware[GuardRailState]):
 
             sanitized_prompt = masked_content
 
-            # Add newly detected entities
+            # --------------------------------------------------
+            # Store detected PII
+            # --------------------------------------------------
+
             for token, original_value in new_mapping.items():
 
                 entity_type = (
@@ -91,7 +118,6 @@ class GuardRailMiddleware(AgentMiddleware[GuardRailState]):
                     .rsplit("_", 1)[0]
                 )
 
-                # Avoid duplicates
                 already_exists = any(
                     item["token"] == token
                     for item in detected_pii
@@ -113,9 +139,23 @@ class GuardRailMiddleware(AgentMiddleware[GuardRailState]):
                 )
             )
 
-        masking_latency_ms = (
+        # --------------------------------------------------
+        # ACCUMULATE MASKING LATENCY
+        # --------------------------------------------------
+
+        current_masking_latency_ms = (
             time.perf_counter() - start_time
         ) * 1000
+
+        previous_masking_latency_ms = state.get(
+            "masking_latency_ms",
+            0.0
+        )
+
+        total_masking_latency_ms = (
+            previous_masking_latency_ms
+            + current_masking_latency_ms
+        )
 
         return {
             "messages": masked_messages,
@@ -127,7 +167,7 @@ class GuardRailMiddleware(AgentMiddleware[GuardRailState]):
             "detected_pii": detected_pii,
 
             "masking_latency_ms": (
-                masking_latency_ms
+                total_masking_latency_ms
             )
         }
 
@@ -152,8 +192,9 @@ class GuardRailMiddleware(AgentMiddleware[GuardRailState]):
             tool_call.get("args", {})
         )
 
-        # Resolve tokens only immediately
-        # before the trusted tool executes.
+        # Restore PII only immediately before
+        # sending data to the trusted backend.
+
         for argument_name, argument_value in arguments.items():
 
             if not isinstance(argument_value, str):
@@ -220,6 +261,10 @@ class GuardRailMiddleware(AgentMiddleware[GuardRailState]):
             {}
         )
 
+        # --------------------------------------------------
+        # Restore original PII
+        # --------------------------------------------------
+
         final_response = self.anonymizer.unmask(
             raw_response,
             mapping
@@ -229,8 +274,6 @@ class GuardRailMiddleware(AgentMiddleware[GuardRailState]):
             time.perf_counter() - start_time
         ) * 1000
 
-        # Explicitly preserve all guardrail
-        # information for the Streamlit UI.
         return {
             "raw_response": raw_response,
 
