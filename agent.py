@@ -29,12 +29,12 @@ def get_order_status(email: str) -> str:
         "harshal@gmail.com": {
             "order_id": "AP001254",
             "status": "Shipped",
-            "estimated_delivery": "August 20, 2026"
+            "estimated_delivery": "September 20, 2026"
         },
         "rahul@gmail.com": {
             "order_id": "AP001255",
             "status": "Processing",
-            "estimated_delivery": "August 22, 2026"
+            "estimated_delivery": "September 22, 2026"
         }
     }
 
