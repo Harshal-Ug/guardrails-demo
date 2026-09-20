@@ -1,7 +1,3 @@
-Got you. The issue is that I was wrapping it in a code block, which makes GitHub Markdown appear as plain text here.
-
-**Copy everything below directly into `README.md`:**
-
 # PII Guardrail Middleware for Agentic AI
 
 A PII protection middleware built with LangChain for protecting sensitive information in agentic AI applications.
